@@ -2,17 +2,16 @@ package moon.odyssey;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.context.annotation.Bean;
-import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.messaging.SubscribableChannel;
+
+import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
-import moon.odyssey.channel.ConsumerChannel;
+import moon.odyssey.message.MyMessage;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @SpringBootApplication
-@EnableBinding(ConsumerChannel.class)
 @Slf4j
 public class ConsumerApplication {
 
@@ -20,27 +19,15 @@ public class ConsumerApplication {
         SpringApplication.run(ConsumerApplication.class, args);
     }
 
-    private IntegrationFlow incommingMessageFlow(SubscribableChannel channel, String prefix) {
-
-        return IntegrationFlows.from(channel)
-                               .transform(String.class, String::toUpperCase)
-                               .handle(
-                                   String.class
-                                   , (payload, headers) -> {
-                                       log.info("##### {} message : {}", prefix, payload);
-                                       return null;
-                                   }
-                               )
-                               .get();
+    @Bean
+    public Function<Flux<MyMessage>, Mono<Void>> direct() {
+        return myMessageFlux -> myMessageFlux.doOnNext(myMessage -> log.info("##### message for direct : {}", myMessage.getMessage()))
+                                       .then();
     }
 
     @Bean
-    IntegrationFlow direct(ConsumerChannel channel) {
-        return incommingMessageFlow(channel.directMessage(), "direct");
-    }
-
-    @Bean
-    IntegrationFlow broadcast(ConsumerChannel channel) {
-        return incommingMessageFlow(channel.broadcastMessage(), "broadcast");
+    public Function<Flux<MyMessage>, Mono<Void>> broadcast() {
+        return myMessageFlux -> myMessageFlux.doOnNext(myMessage -> log.info("##### message for broadcast : {}", myMessage.getMessage()))
+                                             .then();
     }
 }

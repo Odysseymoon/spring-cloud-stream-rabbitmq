@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import moon.odyssey.gateway.MessageGateway;
+import moon.odyssey.message.MyMessage;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -23,7 +24,7 @@ public class MessageController {
     public Mono<Void> direct(@PathVariable String message) {
 
         return Mono.just(message)
-                   .doOnNext(s -> messageGateway.directMessage(message))
+                   .doOnNext(s -> messageGateway.directMessage(MyMessage.builder().message(message).build()))
                    .then();
     }
 
@@ -31,7 +32,7 @@ public class MessageController {
     public Mono<Void> broadcast(@PathVariable String message) {
 
         return Mono.just(message)
-                   .doOnNext(s -> messageGateway.broadcastMessage(message))
+                   .doOnNext(s -> messageGateway.broadcastMessage(MyMessage.builder().message(message).build()))
                    .then();
     }
 }

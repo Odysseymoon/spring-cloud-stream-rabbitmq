@@ -25,9 +25,9 @@ spring:
     stream:
       bindings:
         directMessage:
-          destinations: p2p-topic
+          destination: p2p-topic
         broadcastMessage:
-          destinations: pubsub-topic
+          destination: pubsub-topic
   rabbitmq:
     addresses: localhost
     username: admin
