@@ -30,6 +30,7 @@ spring:
           group: p2p-group
           durableSubscription: true
         broadcast:
+          binder: rabbit
           destination: pubsub-topic
   rabbitmq:
     addresses: localhost
