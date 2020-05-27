@@ -22,11 +22,13 @@ spring:
 spring:
   profiles: local
   cloud:
+    function:
+      definition: direct;broadcast
     stream:
       bindings:
-        directMessage:
+        direct-out-0:
           destination: p2p-topic
-        broadcastMessage:
+        broadcast-out-0:
           destination: pubsub-topic
   rabbitmq:
     addresses: localhost

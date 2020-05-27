@@ -1,15 +1,19 @@
 package moon.odyssey.rest;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.function.Supplier;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import moon.odyssey.gateway.MessageGateway;
 import moon.odyssey.message.MyMessage;
+import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -18,21 +22,33 @@ import reactor.core.publisher.Mono;
 @RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MessageController {
 
-    private final MessageGateway messageGateway;
+    EmitterProcessor<MyMessage> directProcessor = EmitterProcessor.create();
+
+    EmitterProcessor<MyMessage> broadcastProcessor = EmitterProcessor.create();
 
     @GetMapping(value = "/direct/{message}")
-    public Mono<Void> direct(@PathVariable String message) {
+    public Mono<Void> directMessage(@PathVariable String message) {
 
         return Mono.just(message)
-                   .doOnNext(s -> messageGateway.directMessage(MyMessage.builder().message(message).build()))
+                   .doOnNext(s -> directProcessor.onNext(MyMessage.builder().message(message).build()))
                    .then();
     }
 
     @GetMapping(value = "/broadcast/{message}")
-    public Mono<Void> broadcast(@PathVariable String message) {
+    public Mono<Void> broadcastMessage(@PathVariable String message) {
 
         return Mono.just(message)
-                   .doOnNext(s -> messageGateway.broadcastMessage(MyMessage.builder().message(message).build()))
+                   .doOnNext(s -> broadcastProcessor.onNext(MyMessage.builder().message(message).build()))
                    .then();
+    }
+
+    @Bean
+    public Supplier<Flux<MyMessage>> direct() {
+        return () -> this.directProcessor;
+    }
+
+    @Bean
+    public Supplier<Flux<MyMessage>> broadcast() {
+        return () -> this.broadcastProcessor;
     }
 }
