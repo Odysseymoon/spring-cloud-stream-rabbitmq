@@ -22,16 +22,14 @@ spring:
 spring:
   profiles: local
   cloud:
-    function:
-      definition: direct;broadcast
     stream:
       bindings:
-        direct-in-0:
+        direct:
           binder: rabbit
           destination: p2p-topic
           group: p2p-group
           durableSubscription: true
-        broadcast-in-0:
+        broadcast:
           destination: pubsub-topic
   rabbitmq:
     addresses: localhost
